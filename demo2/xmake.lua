@@ -1,0 +1,7 @@
+add_includedirs("include")
+target("demo2_server")
+    add_files("main.cpp")
+    set_kind("binary")
+target("demo2_client")
+    add_files("client_main.cpp")
+    set_kind("binary")
