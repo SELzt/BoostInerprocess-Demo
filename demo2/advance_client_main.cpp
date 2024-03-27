@@ -3,16 +3,20 @@
 #include "shm_commom.hpp"
 using namespace boost::interprocess;
 int main(void){
-    construct();
+    // construct();
     GaugeInfo gaugeInfo;
     TurnByTurnInfo tbtInfo;
 
     while(1){
         int i = 0;
-        for(auto it : pool_tbtInfoVector){
-            if(it.isModify()){}
-            ++i;
-        }
+        TurnByTurnInfo tempTbtInfo;
+        // for(auto it : pool_tbtInfoVector){
+        //     if(it.isModify()){
+        //         tempTbtInfo = it.getValue();
+        //         // printf("remainRange %d\n", tempTbtInfo.remainRange);
+        //     }
+        //     ++i;
+        // }
         // printf("i = %d\n", i);
         // pool_gaugeInfo.printMutexAddr();
         // pool_gaugeInfo.clientLock();

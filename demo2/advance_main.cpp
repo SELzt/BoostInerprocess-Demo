@@ -3,7 +3,7 @@
 #include "shm_commom.hpp"
 using namespace boost::interprocess;
 int main(void){
-    
+    // construct();
     GaugeInfo gaugeInfo;
     gaugeInfo.speedUnit = 1;
     gaugeInfo.speedValid = 1;
@@ -22,9 +22,12 @@ int main(void){
         if(gaugeInfo.speedValue > 240)
             gaugeInfo.speedValue = 0;
         pool_gaugeInfo.setValue(gaugeInfo);
-        printf("speedValue = %d\n", gaugeInfo.speedValue);
+        // printf("speedValue = %d\n", gaugeInfo.speedValue);
         --tbtInfo.remainRange;
         pool_tbtInfo.setValue(tbtInfo);
+        // for(auto it : pool_tbtInfoVector){
+        //     it.setValue(tbtInfo);
+        // }
         // printf("remainRange = %d\n", tbtInfo.remainRange);
         
         std::this_thread::sleep_for(std::chrono::milliseconds(50));

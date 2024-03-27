@@ -16,15 +16,15 @@ AtomicStruct<TurnByTurnInfo> pool_tbtInfo(pool, "TurnByTurnInfo", TurnByTurnInfo
 
 std::vector<AtomicStruct<TurnByTurnInfo>> pool_tbtInfoVector;
 void construct(){
-    int length = 10000;
+    int length = 7500;
     unsigned long constructLength = length * sizeof(TurnByTurnInfo);
-    printf("poolLength = %d, constructLength = %lu\n", poolLength, constructLength);
+    printf("poolLength = %d, constructLength = %lu, allocate %d\n", poolLength, constructLength, pool.get_size());
     if(poolLength < constructLength){
         printf("construct error\n");
         return;
     }
     for(int i = 0; i < length; ++i){
-        // printf("%d\n", i);
+        printf("%d\n", i);
         AtomicStruct<TurnByTurnInfo> pool_tbtInfo(pool,(std::to_string(i) + "TurnByTurnInfo").c_str(), TurnByTurnInfo());
         pool_tbtInfoVector.push_back(pool_tbtInfo);
     }

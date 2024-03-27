@@ -39,7 +39,7 @@ class AtomicStruct{
             #endif
         }
         void setValue(T newData){
-            scoped_lock<named_mutex> lock(*m_mutex);
+            // scoped_lock<named_mutex> lock(*m_mutex);
             asign(*m_ptr, newData);
             // printf("[%s]\n", __func__);
         }
@@ -49,7 +49,7 @@ class AtomicStruct{
             }
         }
         T getValue(){
-            scoped_lock<named_mutex> lock(*m_mutex);
+            // scoped_lock<named_mutex> lock(*m_mutex);
             asign(m_local, *m_ptr);
             return m_local;
         }
