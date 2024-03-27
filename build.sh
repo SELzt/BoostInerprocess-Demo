@@ -1,3 +1,3 @@
 #!/bin/sh
-xmake f -m debug --root
+xmake f -m release --root
 xmake --root

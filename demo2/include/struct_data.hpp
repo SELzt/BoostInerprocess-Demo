@@ -1,3 +1,6 @@
+#ifndef STRUCT_ADAT_HPP
+#define STRUCT_ADAT_HPP
+#include <unistd.h>
 #include <stdio.h>
 #include <iostream>
 #include <thread>
@@ -22,3 +25,6 @@ typedef struct TurnByTurnInfo
 	unsigned int remainTime;     
 	char nextStreet[24];         
 }__attribute__((packed)) TurnByTurnInfo;
+
+
+#endif
