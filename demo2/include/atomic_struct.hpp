@@ -15,7 +15,9 @@ class AtomicStruct{
         return !memcmp(&src, &dst, sizeof(T));
     }
     public:
-        AtomicStruct(Pool& pool, const char* name, const T& initStruct):m_pool(pool){
+        AtomicStruct(Pool& pool, const char* name, const T& initStruct, MessageID id)
+        :m_pool(pool),
+        m_id(id){
             // m_pool = pool;
             auto res = m_pool.find_no_lock<T>(name);
             if(res.first != nullptr){
@@ -67,12 +69,16 @@ class AtomicStruct{
             scoped_lock<named_mutex> lock(*m_mutex);
             while(1);
         }
+        MessageID getID(){
+            return m_id;
+        }
     private:
         Pool& m_pool;
         T* m_ptr;
         T m_local;
         std::string mtxName;
         named_mutex* m_mutex;
+        MessageID m_id;
 };
 
 #endif

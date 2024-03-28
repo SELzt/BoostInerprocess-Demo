@@ -16,15 +16,31 @@ int main(void){
     tbtInfo.remainRange = 30000000;
     tbtInfo.remainTime = 65555;
     tbtInfo.totalRange = 40000000;
-
+    for(auto it : poolMsgIDMap){
+        printf("MSGID = %u, MSGNAME = %s\n", it.first, it.second);
+    }
     while(1){
         ++gaugeInfo.speedValue;
         if(gaugeInfo.speedValue > 240)
             gaugeInfo.speedValue = 0;
-        pool_gaugeInfo.setValue(gaugeInfo);
+        POOL_GaugeInfo.setValue(gaugeInfo);
+        {
+            MqInfo mqInfo{(unsigned int)ID_GaugeInfo, (unsigned char)Action_modify};
+            serverToClientMQ.send(&mqInfo, MQ_INFO_LEN, 0);
+        }
+        {
+            MqInfo mqInfo{(unsigned int)ID_TurnByTurnInfo, (unsigned char)Action_modify};
+            serverToClientMQ.send(&mqInfo, MQ_INFO_LEN, 127);
+        }
+        {
+            MqInfo mqInfo{(unsigned int)ID_UNKNOW, (unsigned char)Action_unknow};
+            serverToClientMQ.send(&mqInfo, MQ_INFO_LEN, 255);
+            boost::posix_time::ptime timeout = boost::get_system_time() + boost::posix_time::millisec(50);
+            serverToClientMQ.timed_send(&mqInfo, MQ_INFO_LEN, 255, timeout);
+        }
         // printf("speedValue = %d\n", gaugeInfo.speedValue);
         --tbtInfo.remainRange;
-        pool_tbtInfo.setValue(tbtInfo);
+        POOL_TurnByTurnInfo.setValue(tbtInfo);
         // for(auto it : pool_tbtInfoVector){
         //     it.setValue(tbtInfo);
         // }

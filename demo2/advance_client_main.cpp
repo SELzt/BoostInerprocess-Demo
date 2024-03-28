@@ -3,33 +3,24 @@
 #include "shm_commom.hpp"
 using namespace boost::interprocess;
 int main(void){
-    // construct();
     GaugeInfo gaugeInfo;
     TurnByTurnInfo tbtInfo;
 
     while(1){
-        int i = 0;
-        TurnByTurnInfo tempTbtInfo;
-        // for(auto it : pool_tbtInfoVector){
-        //     if(it.isModify()){
-        //         tempTbtInfo = it.getValue();
-        //         // printf("remainRange %d\n", tempTbtInfo.remainRange);
-        //     }
-        //     ++i;
+        message_queue::size_type recvd_size;
+        unsigned int priority;
+        MqInfo info;
+        serverToClientMQ.receive(&info, MQ_INFO_LEN, recvd_size, priority); // 阻塞式
+        printf("MSGID = %u, MSGACTION = %d, recvd_size = %lu, priority = %d\n", info.id, info.action, recvd_size, priority);
+        // if(POOL_GaugeInfo.isModify()){
+        //     gaugeInfo = POOL_GaugeInfo.getValue();
+        //     ++gaugeInfo.speedValue;
+        //     printf("[GaugeInfo]speedValue = %u, speedValid = %u, speedUnit = %u\n", gaugeInfo.speedValue, gaugeInfo.speedValid, gaugeInfo.speedUnit);
         // }
-        // printf("i = %d\n", i);
-        // pool_gaugeInfo.printMutexAddr();
-        // pool_gaugeInfo.clientLock();
-
-        if(pool_gaugeInfo.isModify()){
-            gaugeInfo = pool_gaugeInfo.getValue();
-            ++gaugeInfo.speedValue;
-            printf("[GaugeInfo]speedValue = %u, speedValid = %u, speedUnit = %u\n", gaugeInfo.speedValue, gaugeInfo.speedValid, gaugeInfo.speedUnit);
-        }
-        if(pool_tbtInfo.isModify()){
-            tbtInfo = pool_tbtInfo.getValue();
-            printf("[TurnByTurnInfo]direction = %d, distanceToNext = %u, nextStreet = %s, remainRange = %u, remainTime = %u, totalRange = %u\n", tbtInfo.direction, tbtInfo.distanceToNext, tbtInfo.nextStreet, tbtInfo.remainRange, tbtInfo.remainTime, tbtInfo.totalRange);
-        }
+        // if(pool_tbtInfo.isModify()){
+        //     tbtInfo = pool_tbtInfo.getValue();
+        //     printf("[TurnByTurnInfo]direction = %d, distanceToNext = %u, nextStreet = %s, remainRange = %u, remainTime = %u, totalRange = %u\n", tbtInfo.direction, tbtInfo.distanceToNext, tbtInfo.nextStreet, tbtInfo.remainRange, tbtInfo.remainTime, tbtInfo.totalRange);
+        // }
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
     return 0;
