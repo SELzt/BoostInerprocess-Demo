@@ -3,7 +3,6 @@
 #include "shm_commom.hpp"
 using namespace boost::interprocess;
 int main(void){
-    // construct();
     GaugeInfo gaugeInfo;
     gaugeInfo.speedUnit = 1;
     gaugeInfo.speedValid = 1;
@@ -25,28 +24,30 @@ int main(void){
             gaugeInfo.speedValue = 0;
         POOL_GaugeInfo.setValue(gaugeInfo);
         {
+            static int s_totalSend = 0;
+            static int s_success = 0;
             MqInfo mqInfo{(unsigned int)ID_GaugeInfo, (unsigned char)Action_modify};
-            serverToClientMQ.send(&mqInfo, MQ_INFO_LEN, 0);
+            boost::posix_time::ptime timeout = boost::get_system_time() + boost::posix_time::millisec(1000);
+            bool res = serverToClientMQ.timed_send(&mqInfo, MQ_INFO_LEN, 0, timeout);
+            ++s_totalSend;
+            s_success += res;
+            printf("s_totalSend = %d, s_success = %d, res = %d\n", s_totalSend, s_success, res);
         }
         {
             MqInfo mqInfo{(unsigned int)ID_TurnByTurnInfo, (unsigned char)Action_modify};
-            serverToClientMQ.send(&mqInfo, MQ_INFO_LEN, 127);
+            bool res = serverToClientMQ.try_send(&mqInfo, MQ_INFO_LEN, 127);
+            printf("id = %u,  res = %d\n", (unsigned int)ID_TurnByTurnInfo, res);
         }
         {
             MqInfo mqInfo{(unsigned int)ID_UNKNOW, (unsigned char)Action_unknow};
-            serverToClientMQ.send(&mqInfo, MQ_INFO_LEN, 255);
-            boost::posix_time::ptime timeout = boost::get_system_time() + boost::posix_time::millisec(50);
-            serverToClientMQ.timed_send(&mqInfo, MQ_INFO_LEN, 255, timeout);
+            bool res = serverToClientMQ.try_send(&mqInfo, MQ_INFO_LEN, 255);
+            printf("id = %u,  res = %d\n", (unsigned int)ID_UNKNOW, res);
         }
         // printf("speedValue = %d\n", gaugeInfo.speedValue);
         --tbtInfo.remainRange;
         POOL_TurnByTurnInfo.setValue(tbtInfo);
-        // for(auto it : pool_tbtInfoVector){
-        //     it.setValue(tbtInfo);
-        // }
-        // printf("remainRange = %d\n", tbtInfo.remainRange);
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
     return 0;
 }

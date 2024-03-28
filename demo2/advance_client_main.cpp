@@ -10,6 +10,7 @@ int main(void){
         message_queue::size_type recvd_size;
         unsigned int priority;
         MqInfo info;
+        // serverToClientMQ.timed_receive
         serverToClientMQ.receive(&info, MQ_INFO_LEN, recvd_size, priority); // 阻塞式
         printf("MSGID = %u, MSGACTION = %d, recvd_size = %lu, priority = %d\n", info.id, info.action, recvd_size, priority);
         // if(POOL_GaugeInfo.isModify()){
