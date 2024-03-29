@@ -1,7 +1,6 @@
 #include "struct_data.hpp"
 #include "atomic_struct.hpp"
 #include "shm_commom.hpp"
-#define getAtomic(_name) _name
 using namespace boost::interprocess;
 int main(void){
     GaugeInfo gaugeInfo;

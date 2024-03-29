@@ -47,7 +47,7 @@ int main(void){
                 static int s_totalSend = 0;
                 static int s_success = 0;
                 MqInfo mqInfo{(unsigned int)ID_GaugeInfo, (unsigned char)Action_modify};
-                boost::posix_time::ptime timeout = boost::get_system_time() + boost::posix_time::millisec(1000);
+                // boost::posix_time::ptime timeout = boost::get_system_time() + boost::posix_time::millisec(1000);
                 // bool res = serverToClientMQ.timed_send(&mqInfo, MQ_INFO_LEN, 256, timeout);
                 bool res = serverToClientMQ.try_send(&mqInfo, MQ_INFO_LEN, 256);
                 ++s_totalSend;

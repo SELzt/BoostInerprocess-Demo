@@ -1,6 +1,9 @@
 #include "atomic_struct.hpp"
 #include <vector>
 #include <map>
+#ifdef QNX
+#include <unordered_map>
+#endif
 #include <boost/interprocess/ipc/message_queue.hpp>
 #include <memory>
 #define constructMessageID(_pool, _name) std::pair<MessageID, std::shared_ptr<void>>(ID_##_name, CreateInstance<_name>(_pool, #_name, ID_##_name))
@@ -46,6 +49,6 @@ std::shared_ptr<AtomicStruct<T>> FindInstance(const MessageID& key, std::unorder
     return nullptr;
 }
 std::unordered_map<MessageID, std::shared_ptr<void>> poolMsgIDMap{
-    constructMessageID(pool, GaugeInfo),
-    constructMessageID(pool, TurnByTurnInfo),
+    // constructMessageID(pool, GaugeInfo),
+    // constructMessageID(pool, TurnByTurnInfo),
 };
