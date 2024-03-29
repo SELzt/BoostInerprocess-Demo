@@ -1,9 +1,9 @@
 #include "atomic_struct.hpp"
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <boost/interprocess/ipc/message_queue.hpp>
-#define constructMessageID(_name) std::pair<MessageID, const char*>(ID_##_name, #_name)
-#define constructAtomicStruct(_pool, _name) AtomicStruct<_name> POOL_##_name(_pool, #_name, _name(), ID_##_name) 
+#include <memory>
+#define constructMessageID(_pool, _name) std::pair<MessageID, std::shared_ptr<void>>(ID_##_name, CreateInstance<_name>(_pool, #_name, ID_##_name))
 using namespace boost::interprocess;
 static std::string poolName = "StructPool2";
 static std::string mqName = "server_to_client_queue";
@@ -31,10 +31,21 @@ message_queue serverToClientMQ(create_only, mqName.c_str(), 3000, MQ_INFO_LEN);
 message_queue serverToClientMQ(open_only, mqName.c_str());
 #endif
 
-constructAtomicStruct(pool, GaugeInfo);
-constructAtomicStruct(pool, TurnByTurnInfo);
-
-const std::map<MessageID, const char*> poolMsgIDMap{
-    constructMessageID(GaugeInfo),
-    constructMessageID(TurnByTurnInfo),
+template<typename T>
+std::shared_ptr<AtomicStruct<T>> CreateInstance(Pool& _pool, const char* name, MessageID id) {
+    return std::make_shared<AtomicStruct<T>>(_pool, name, T(), id);
+}
+ 
+// 查找模板类实例的函数
+template<typename T>
+std::shared_ptr<AtomicStruct<T>> FindInstance(const MessageID& key, std::unordered_map<MessageID, std::shared_ptr<void>>& instances) {
+    auto it = instances.find(key);
+    if (it != instances.end()) {
+        return std::static_pointer_cast<AtomicStruct<T>>(it->second);
+    }
+    return nullptr;
+}
+std::unordered_map<MessageID, std::shared_ptr<void>> poolMsgIDMap{
+    constructMessageID(pool, GaugeInfo),
+    constructMessageID(pool, TurnByTurnInfo),
 };
