@@ -5,31 +5,16 @@
 #include <memory>
 #define constructMessageID(_pool, _name) std::pair<MessageID, std::shared_ptr<void>>(ID_##_name, CreateInstance<_name>(_pool, #_name, ID_##_name))
 using namespace boost::interprocess;
-static std::string poolName = "StructPool2";
-static std::string mqName = "server_to_client_queue";
-#ifdef SHMSERVER
-// 需确保server先启动，否则client将收不到数据，因为原有的共享内存被移除了，然后在新的地址开辟了另一个内存块，而client持有的还是旧的内存块地址
-struct shm_remove
-    {
-        shm_remove() {
-            shared_memory_object::remove(poolName.c_str()); 
-            message_queue::remove(mqName.c_str());
-        }
-        ~shm_remove(){
-            shared_memory_object::remove(poolName.c_str()); 
-            message_queue::remove(mqName.c_str());
-        }
-    } remover;
-#endif
+
 static const int poolLength = 655350*4;
-const unsigned int MQ_INFO_LEN = sizeof(MqInfo);
+static std::string poolName = "StructPool2";
 Pool pool(open_or_create, poolName.c_str(), poolLength);
 
-#ifdef SHMSERVER
-message_queue serverToClientMQ(create_only, mqName.c_str(), 3000, MQ_INFO_LEN);
-#else
-message_queue serverToClientMQ(open_only, mqName.c_str());
-#endif
+const char* mqName = "server_to_client_queue";
+const std::size_t MQ_INFO_LEN = sizeof(MqInfo);
+const std::size_t QUEUE_SIZE = 3000;
+boost::interprocess::message_queue serverToClientMQ(boost::interprocess::open_or_create, mqName, QUEUE_SIZE, MQ_INFO_LEN);
+
 
 template<typename T>
 std::shared_ptr<AtomicStruct<T>> CreateInstance(Pool& _pool, const char* name, MessageID id) {
@@ -49,3 +34,5 @@ std::unordered_map<MessageID, std::shared_ptr<void>> poolMsgIDMap{
     constructMessageID(pool, GaugeInfo),
     constructMessageID(pool, TurnByTurnInfo),
 };
+
+

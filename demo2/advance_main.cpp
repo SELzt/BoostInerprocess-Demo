@@ -14,8 +14,8 @@ int main(void){
     tbtInfo.remainRange = 30000000;
     tbtInfo.remainTime = 65555;
     tbtInfo.totalRange = 40000000;
-    for(auto it : poolMsgIDMap){
-        printf("MSGID = %u, MSGNAME = %s\n", it.first, it.second);
+    for(auto& it : poolMsgIDMap){
+        printf("MSGID = %u\n", it.first);
     }
     
     std::chrono::steady_clock::time_point mStartTime;
