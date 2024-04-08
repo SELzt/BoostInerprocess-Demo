@@ -1,5 +1,15 @@
 add_rules("mode.release", "mode.debug", "mode.releasedbg")
-set_languages("cxx14")
-add_cxxflags("-std=c++14")  -- 添加c++编译选项
+-- add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode"})
+set_languages("cxx11")
+add_cxxflags("-std=c++11")  -- 添加c++编译选项
 add_includedirs("3rd/")
-includes("demo1", "demo2")
+-- includes("demo1", "demo2")
+includes("demo3")
+target("init")
+    set_kind("phony")
+    on_build(function (target)
+        print("on build")
+        os.cp("/usr/local/lib/libboost_thread.so.1.82.0","/home/test/build/linux/x86_64/release/")
+        os.cp("startup.sh","/home/test/build/linux/x86_64/release/")
+    end)
+-- includes("demo4")
