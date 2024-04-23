@@ -1,2 +1,2 @@
 #!/bin/sh
-echo "invock success"
+echo "invoke success"

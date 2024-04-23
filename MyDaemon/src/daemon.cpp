@@ -9,22 +9,23 @@
 #include <signal.h>
 #include "common.h"
 using namespace std;
-void dispatchRegister(unordered_map<int, DaemonClientInfo>& clients, std::vector<int>& needRemoveVec, DaemonClientInfo& client){
+typedef unordered_map<int, DaemonClientInfo> DaemonInfoMap;
+void dispatchRegister(DaemonInfoMap& clients, std::vector<int>& needRemoveVec, DaemonClientInfo& client){
     clients[client.pid] = client;
 }
 void dispatchUnRegister(std::vector<int>& needRemoveVec, int pid){
     needRemoveVec.push_back(pid);
 }
-void dispatchMessage(unordered_map<int, DaemonClientInfo>& clients, std::vector<int>& needRemoveVec, DaemonClientInfo& client){
+void dispatchMessage(DaemonInfoMap& clients, std::vector<int>& needRemoveVec, DaemonClientInfo& client){
     if(client.type == DaemonType::Register){
         dispatchRegister(clients, needRemoveVec, client);
     }
     else if(client.type == DaemonType::UnRegister){
         dispatchUnRegister(needRemoveVec, client.pid);
     }
-    printf("pid -> %d, type -> %d, condition -> %d, scriptPath -> %s \n", client.pid, client.type, client.condition, client.scriptPath);
+    printf("received pid -> %d, type -> %d, condition -> %d, scriptPath -> %s \n", client.pid, client.type, client.condition, client.scriptPath);
 }
-void working(unordered_map<int, DaemonClientInfo>& clients, std::vector<int>& needRemoveVec, DaemonClientInfo& client){
+void working(DaemonInfoMap& clients, std::vector<int>& needRemoveVec, DaemonClientInfo& client){
     switch (client.condition)
     {
         case DaemonCondition::ConditionDeath:
@@ -47,53 +48,40 @@ int main(){
     boost::interprocess::message_queue::remove(mqName);
     boost::interprocess::message_queue m_daemonMq(boost::interprocess::open_or_create, mqName, QUEUE_SIZE, MQ_INFO_LEN);
     std::vector<int> needRemoveVec;
-    int pid = 0;
-    if(pid = fork()){
-        // 父进程
-        if(pid > 0){
-            exit(0);
-        }
-        else{
-            printf("fork fail 1\n");
-        }
+    int rc = daemon(0, 1);
+    while(rc){
+        // Create daemon fail.Try again.
+        printf("Create daemon fail.Try again.\n");
+        rc = daemon(0, 1);
     }
-    setsid();
-    chdir("/");
-    umask(0);
-
-    if(pid = fork()){
-        // 父进程
-        if(pid > 0){
-            exit(0);
-        }
-        else{
-            printf("fork fail 2\n");
-        }
-    }
-    printf("become daemon\n");
-    unordered_map<int, DaemonClientInfo> clients;
-    close(0);
-    close(1);
-    close(2);
+    DaemonInfoMap clients;
     DaemonClientInfo info;
     unsigned long receiveSize;
     unsigned int priority;
+    std::chrono::steady_clock::time_point startTime, endTime;
+    startTime = std::chrono::steady_clock::now();
     while(1){
         if(m_daemonMq.try_receive(&info, MQ_INFO_LEN, receiveSize, priority)){
             dispatchMessage(clients, needRemoveVec, info);
         }
         // printf("looping\n");
-        while(!needRemoveVec.empty()){
-            int tempPid = needRemoveVec[needRemoveVec.size() - 1];
-            needRemoveVec.pop_back();
-            int res = clients.erase(tempPid);
-            // printf("res = %d\n", res);
+        endTime = std::chrono::steady_clock::now();
+        if(std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() >= 1000){
+            // printf("working\n");
+            startTime = std::chrono::steady_clock::now();
+            endTime = std::chrono::steady_clock::now();
+            while(!needRemoveVec.empty()){
+                int tempPid = needRemoveVec[needRemoveVec.size() - 1];
+                needRemoveVec.pop_back();
+                int res = clients.erase(tempPid);
+                // printf("res = %d\n", res);
+            }
+            for(auto& it : clients){
+                // printf("pid -> %d, type -> %d, condition -> %d, scriptPath -> %s \n", it.second.pid, it.second.type, it.second.condition, it.second.scriptPath);
+                working(clients, needRemoveVec, it.second);
+            }
         }
-        for(auto& it : clients){
-            // printf("pid -> %d, type -> %d, condition -> %d, scriptPath -> %s \n", it.second.pid, it.second.type, it.second.condition, it.second.scriptPath);
-            working(clients, needRemoveVec, it.second);
-        }
-        this_thread::sleep_for(chrono::milliseconds(10));
+        this_thread::sleep_for(chrono::milliseconds(100));
     }
     return 0;
 }
